@@ -1,0 +1,40 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * App\School
+ *
+ * @mixin \Eloquent
+ * @property int $id
+ * @property string $municipality_id
+ * @property int $school_id
+ * @property string $code
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property string $name
+ * @property-read \App\DiagnosticResult $diagnosticResult
+ * @property-read \App\Municipality $municipality
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereMunicipalityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\School whereUpdatedAt($value)
+ */
+class School extends Model
+{
+
+    public function municipality()
+    {
+        return $this->hasOne(Municipality::class);
+    }
+
+    public function diagnosticResult()
+    {
+        return $this->belongsTo(DiagnosticResult::class);
+    }
+}

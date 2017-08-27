@@ -1,0 +1,40 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Список загруженых файлов результатов диагностики</div>
+                    <div class="panel-body">
+
+                        <table id="example" class="display" cellspacing="0" width="100%">
+                            <thead>
+                            <tr>
+                                <th>№ п/п</th>
+                                <th>Диагностика</th>
+                                <th>Предмет</th>
+                                <th>Год</th>
+                                <th>Файл</th>
+                                <th>Пользователь</th>
+                                <th>Дата загрузки</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Действия</div>
+                    <div class="panel-body">
+                        <a class="btn btn-primary" href="{{ route('loader/load') }}" role="button">Загрузить</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

@@ -1,0 +1,464 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * App\DiagnosticResult
+ *
+ * @mixin \Eloquent
+ * @property int $id
+ * @property int $diagnostic_file_id
+ * @property int $region_id
+ * @property int $municipality_id
+ * @property int $school_id
+ * @property string $class
+ * @property string $first_name
+ * @property string $last_name
+ * @property string $middle_name
+ * @property boolean $presence
+ * @property int $total_result
+ * @property string $xvl_result
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property string|null $xls_result
+ * @property-read \App\School $diagnosticFile
+ * @property-read \App\Municipality $municipality
+ * @property-read \App\Region $region
+ * @property-read \App\School $school
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereClass($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereDiagnosticFileId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereLastName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereMiddleName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereMunicipalityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult wherePresence($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereRegionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereSchoolId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereTotalResult($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereXlsResult($value)
+ * @property int $section_number
+ * @property int|null $subject_id
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereSectionNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereSubjectId($value)
+ */
+class DiagnosticResult extends Model
+{
+
+    /**
+     * @var array
+     */
+    protected $fillable = [
+        'diagnostic_file_id',
+        'section_number',
+        'region_id',
+        'municipality_id',
+        'school_id',
+        'class',
+        'subject_id',
+        'first_name',
+        'last_name',
+        'middle_name',
+        'presence',
+        'total_result',
+        'xml_result',
+        'status',
+        'errors',
+    ];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function diagnosticFile()
+    {
+        return $this->belongsTo(DiagnosticFile::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function subject()
+    {
+        return $this->belongsTo(DiagnosticSubject::class);
+    }
+
+    public static function parseFile($fileID)
+    {
+        $diagnosticFile = DiagnosticFile::find($fileID);
+
+        $xlsxPath = $diagnosticFile->file_path;
+        $csvPath = self::xlsxToCSV($xlsxPath);
+        if ($csvPath) {
+            $handle = fopen($csvPath, "r");
+            if ($handle) {
+                $diagnosticType = $diagnosticFile->diagnostic_type_id;
+                $activeRow = 0;
+                $results = [];
+                while (($data = fgetcsv($handle)) !== FALSE) {
+                    $activeRow++;
+
+                    $result = self::parseRow($activeRow, $diagnosticType, $data);
+                    if (!is_null($result)) {
+                        $result['diagnostic_file_id'] = $fileID;
+                        self::create($result);
+
+                        $results[] = $result;
+                    }
+                }
+
+                $duplicates = DiagnosticResult::findDuplicates($fileID);
+                if ($duplicates) {
+                    $errorAdded = false;
+                    foreach ($duplicates as $originalID => $duplicateIDs) {
+                        $diagnosticResult = self::find($originalID);
+                        $diagnosticResult->duplicates = json_encode($duplicateIDs);
+
+                        $diagnosticResult->status = 'error';
+                        $diagnosticResult->errors = json_encode(
+                            array_collapse([
+                                json_decode($diagnosticResult->errors, true),
+                                ["Возможно строка имеет дубли!"]
+                            ])
+                        );
+                        $diagnosticResult->save();
+//Изначально ID оригинала записывалось в каждом дубликате
+//производительнее будет записывать в оригинале ID будликатов
+//                        foreach ($duplicateIDs as $duplicateID) {
+//                            $diagnosticResult = self::find($duplicateID);
+//                            if ($diagnosticResult) {
+//                                $diagnosticResult->status       = 'error';
+//                                $diagnosticResult->duplicate    = $originalID;
+//                                $diagnosticResult->save();
+//                            }
+//                        }
+                    }
+                }
+                fclose($handle);
+
+                unlink($csvPath);
+
+//                $results = (new DiagnosticResult())->where('diagnostic_file_id', $fileID)->get();
+//
+//                return response()->json($results);
+            }
+        }
+    }
+
+    /**
+     * Конвертирует xlsx файл в csv
+     *
+     * @param string $xlsxPath Путь к исходному файлу
+     * @return string
+     */
+    protected static function xlsxToCSV($xlsxPath)
+    {
+        $reader = \PHPExcel_IOFactory::createReader('Excel2007');
+        $reader->setReadDataOnly(true);
+
+        $path = storage_path('app/') . $xlsxPath;
+        $excel = $reader->load($path);
+
+        $writer = \PHPExcel_IOFactory::createWriter($excel, 'CSV');
+
+        $name = md5(rand() + microtime() + rand());
+        $csvPath = storage_path("app/diagnostic_files/csv_tmp/$name.csv");
+        $writer->save($csvPath);
+
+        return $csvPath;
+    }
+
+    /**
+     * Разбирает строку из файла с результатами дианостики
+     *
+     * @param $rowNumber
+     * @param $type
+     * @param $data
+     * @return null
+     */
+    protected static function parseRow($rowNumber, $type, $data)
+    {
+        $result = null;
+
+        //Извлекает первый столбец, с порядковым номером
+        array_shift($data);
+
+        if (!empty(array_diff($data, array('')))) {
+            $region         = new Region();
+            $municipality   = new Municipality();
+            $school         = new School();
+            $subject        = new DiagnosticSubject();
+            switch ($type) {
+                case 1:
+                    if ($rowNumber >= 6) {
+
+
+                        $result['errors'] = null;
+
+                        $regionCode = array_shift($data);
+                        $regionID = $region->idByCode($regionCode);
+                        $result['region_id'] = $regionID;
+
+                        //Извлекает название субъекта, оно не сохраняется
+                        array_shift($data);
+
+                        $municipalityName = array_shift($data);
+                        $municipalityID = $municipality->retrieveIDorAdd($regionID, $municipalityName);
+                        $result['municipality_id'] = $municipalityID;
+
+                        $schoolCode = array_shift($data);
+                        $schoolName = array_shift($data);
+                        $schoolID = $school->retrieveIDorAdd($municipalityID, $schoolName, $schoolCode);
+                        $result['school_id'] = $schoolID;
+
+                        $result['class'] = array_shift($data);
+
+                        $result['first_name'] = array_shift($data);
+                        $result['last_name'] = array_shift($data);
+                        $result['middle_name'] = array_shift($data);
+
+                        $result['presence'] = (array_shift($data) == 'Явился') ? true : false;
+
+                        //TODO: что делать с последней колонкой "Оценка"?
+                        $rating = array_pop($data);
+
+                        $totalResult = array_pop($data);
+
+                        $testsResult = self::parseTestsResults($type, $data);
+
+                        if (!is_null($testsResult['messages'])) {
+                            $result['status'] = 'error';
+                            $result['errors'] = array_collapse([$result['errors'], $testsResult['messages']]);
+                        }
+
+                        if (!empty($testsResult['xml_data'])) {
+                            $result['xml_result'] = $testsResult['xml_data'];
+                        }
+
+                        if (empty($totalResult)) {
+                            $totalResult = array_sum($data);
+                        }
+                        $result['total_result'] = $totalResult;
+
+                        $result['errors'] = json_encode($result['errors']);
+                    }
+                    break;
+                case 2:
+                    if ($rowNumber >= 9) {
+                        $result['errors'] = null;
+
+                        $sectionNumber = array_shift($data);
+                        $result['section_number'] = $sectionNumber;
+
+                        $regionCode = array_shift($data);
+                        $regionID = $region->idByCode($regionCode);
+                        $result['region_id'] = $regionID;
+
+                        $municipalityName = array_shift($data);
+                        $municipalityID = $municipality->retrieveIDorAdd($regionID, $municipalityName);
+                        $result['municipality_id'] = $municipalityID;
+
+                        $schoolCode = array_shift($data);
+                        $schoolName = array_shift($data);
+                        $schoolID = $school->retrieveIDorAdd($municipalityID, $schoolName, $schoolCode);
+                        $result['school_id'] = $schoolID;
+
+                        $subjectName = array_shift($data);
+                        $subjectID = $subject->idByName($subjectName);
+                        $result['subject_id'] = $subjectID;
+
+                        $result['class'] = array_shift($data);
+
+                        $result['first_name'] = array_shift($data);
+                        $result['last_name'] = array_shift($data);
+                        $result['middle_name'] = array_shift($data);
+
+                        $result['presence'] = (array_shift($data) == 'Явился') ? true : false;
+
+                        $testsResult = self::parseTestsResults($type, $data);
+
+                        if (!is_null($testsResult['messages'])) {
+                            $result['status'] = 'error';
+                            $result['errors'] = array_collapse([$result['errors'], $testsResult['messages']]);
+                        }
+
+                        if (!empty($testsResult['xml_data'])) {
+                            $result['xml_result'] = $testsResult['xml_data'];
+                        }
+
+                        $totalResult = array_sum($data);
+                        $result['total_result'] = $totalResult;
+
+                        $result['errors'] = json_encode($result['errors']);
+                    }
+                    break;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Валидирует результаты тестов в строке данных из файла результатов диагностики
+     * Формирует XML представление полученных данных и сообщения об ошибках в данных
+     *
+     * @param $type
+     * @param $data
+     * @return mixed
+     */
+    protected static function parseTestsResults($type, $data)
+    {
+        $result['messages'] = null;
+
+        switch ($type) {
+            case 1:
+                $result['xml_data'] = '<?xml version="1.0"?><root>';
+                foreach ($data as $testNumber => $rating) {
+
+                    $result['xml_data'] .= "<test>$rating</test>";
+
+                    $testNumber++;
+                    switch ($testNumber) {
+                        case 1:
+                            if ($rating > 1 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании ИЧ превышает допустимое значение (1)!";
+                            }
+                            break;
+                        case 2:
+                            if ($rating > 1 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании ТЧ превышает допустимое значение (1)!";
+                            }
+                            break;
+                        case 3:
+                            if ($rating > 1 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании Р1 превышает допустимое значение (1)!";
+                            }
+                            break;
+                        case 4:
+                            if ($rating > 5 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании Д превышает допустимое значение (5)!";
+                            }
+                            break;
+                        case 5:
+                            if ($rating > 3 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании Р2 превышает допустимое значение (3)!";
+                            }
+                            break;
+                        case 6:
+                            if ($rating > 5 ) {
+                                $result['error_cell'] = $testNumber;
+                                $result['messages'][] = "Количество баллов ($rating) в задании М превышает допустимое значение (5)!";
+                            }
+                            break;
+                    }
+                }
+                $result['xml_data'] .= '</root>';
+                break;
+            case 2:
+                $result['xml_data'] = '<?xml version="1.0"?><root>';
+                foreach ($data as $testNumber => $rating) {
+                    $testNumber++;
+                    $result['xml_data'] .= "<test>$rating</test>";
+
+                    if ($rating > 5 ) {
+                        $result['error_cell'] = $testNumber;
+                        $result['messages'][] = "Количество баллов ($rating) в задании №$testNumber превышает допустимое значение (0-5)!";
+                    }
+                }
+                $result['xml_data'] .= '</root>';
+                break;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Ищет дублирующихся учеников в разобранном файле
+     *
+     * @param $fileID
+     * @return array
+     */
+    public static function findDuplicates($fileID = null)
+    {
+        $duplicates = self
+            ::select('DR1.id as ID', 'DR2.id as duplicateID')
+            ->from(\DB::raw('diagnostic_results DR1'))
+            ->join(\DB::raw('diagnostic_results DR2'), function ($join) {
+                //Не очень правильная реализация, но рабочая
+                $join ->whereRaw('
+                    `DR2`.`id` > `DR1`.`id` 
+                    and (
+                            `DR1`.`first_name`  = `DR2`.`first_name` 
+                        AND `DR1`.`last_name`   = `DR2`.`last_name` 
+                        AND `DR1`.`middle_name` = `DR2`.`middle_name`
+                        AND `DR1`.`school_id`   = `DR2`.`school_id`
+                        AND `DR1`.`class`       = `DR2`.`class`
+                    )
+                ');
+//Правильная реализация, но не рабочая, итоговый запрос получается одинаковый, но возвращается пустое значение...
+//надо бы разобраться в чем косяк
+//                $join->where('DR2.id', '>', 'DR1.id')
+//                    ->where(function ($query) {
+//                        $query
+//                            ->where('DR1.first_name', 'DR2.first_name')
+//                            ->where('DR1.last_name', 'DR2.last_name')
+//                            ->where('DR1.middle_name', '=', 'DR2.middle_name');
+//                    });
+            })
+            ->where('DR1.diagnostic_file_id', $fileID)
+            ->groupBy(['DR1.id', 'DR2.id'])
+            ->get()
+            ->toArray();
+
+        $result = null;
+        foreach ($duplicates as $id1 => $duplicate) {
+            $firstDuplicate = $duplicate['ID'];
+            $duplicateID = $duplicate['duplicateID'];
+            $result[$firstDuplicate][] = $duplicateID;
+            unset($duplicates[$id1]);
+
+            foreach ($duplicates as $id2 => $nextDuplicate) {
+                if ($duplicateID === $nextDuplicate['ID']) {
+                    $duplicateID = $nextDuplicate['duplicateID'];
+                    $result[$firstDuplicate][] = $duplicateID;
+                    unset($duplicates[$id2]);
+                }
+            }
+        }
+
+        return $result;
+    }
+}

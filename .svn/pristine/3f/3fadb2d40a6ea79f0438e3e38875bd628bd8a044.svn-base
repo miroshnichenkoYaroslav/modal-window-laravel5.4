@@ -1,0 +1,86 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * App\DiagnosticFile
+ *
+ * @property int    $id
+ * @property string $file_name
+ * @property string $file_path
+ * @property int    $user_id
+ * @property int    $diagnostic_type_id
+ * @property int    $diagnostic_subject_id
+ * @property int    $year
+ * @property string $exam_date
+ * @property string $status
+ * @property string $role
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property string $deleted_at
+ * @property-read \App\DiagnosticSubject $diagnosticSubject
+ * @property-read \App\DiagnosticType $diagnosticType
+ * @property-read \App\User $user
+ * @method static bool|null forceDelete()
+ * @method static \Illuminate\Database\Query\Builder|\App\DiagnosticFile onlyTrashed()
+ * @method static bool|null restore()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereDiagnosticSubjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereDiagnosticTypeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereExamDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereFileName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereFilePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticFile whereYear($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\DiagnosticFile withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|\App\DiagnosticFile withoutTrashed()
+ * @mixin \Eloquent
+ */
+class DiagnosticFile extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'deleted_at'
+    ];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'diagnostic_type_id',
+        'diagnostic_subject_id',
+        'year',
+        'exam_date'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function diagnosticType()
+    {
+        return $this->belongsTo(DiagnosticType::class);
+    }
+
+    public function diagnosticSubject()
+    {
+        return $this->belongsTo(DiagnosticSubject::class);
+    }
+}

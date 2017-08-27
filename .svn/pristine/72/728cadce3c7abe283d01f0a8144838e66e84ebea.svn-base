@@ -1,0 +1,13 @@
+<div class="form-group {{ $errors->has('password') ? ' has-error' : ''}}">
+    <label for="password" class="col-md-2 control-label">Пароль</label>
+
+    <div class="col-md-6">
+        <input id="password" type="password" class="form-control" name="password"
+               value="{{isset($password) ? $password : ''}}">
+        @if ($errors->has('password'))
+            <span class="help-block">
+                <strong>{{ $errors->first('password') }}</strong>
+            </span>
+        @endif
+    </div>
+</div>

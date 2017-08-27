@@ -1,0 +1,101 @@
+<?php
+
+use Illuminate\Database\Seeder;
+
+class RegionsTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        DB::table('regions')->insert([ 'id' => '03322C371096D282F7107F6E90FE9780', 'name' => 'образовательные учреждения, находящиеся за пределами Российской Федерации', 'federal_district_id' => null, 'code' => null ]);
+        DB::table('regions')->insert([ 'id' => '10', 'name' => 'Республика Карелия', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '10' ]);
+        DB::table('regions')->insert([ 'id' => '11', 'name' => 'Республика Коми', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '11' ]);
+        DB::table('regions')->insert([ 'id' => '12', 'name' => 'Республика Марий Эл', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '12' ]);
+        DB::table('regions')->insert([ 'id' => '13', 'name' => 'Республика Мордовия', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '13' ]);
+        DB::table('regions')->insert([ 'id' => '14', 'name' => 'Республика Саха (Якутия)', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '14' ]);
+        DB::table('regions')->insert([ 'id' => '15', 'name' => 'Республика Северная Осетия - Алания', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '15' ]);
+        DB::table('regions')->insert([ 'id' => '16', 'name' => 'Республика Татарстан (Татарстан)', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '16' ]);
+        DB::table('regions')->insert([ 'id' => '17', 'name' => 'Республика Тыва', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '17' ]);
+        DB::table('regions')->insert([ 'id' => '18', 'name' => 'Удмуртская Республика', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '18' ]);
+        DB::table('regions')->insert([ 'id' => '19', 'name' => 'Республика Хакасия', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '19' ]);
+        DB::table('regions')->insert([ 'id' => '2', 'name' => 'Республика Башкортостан', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '2' ]);
+        DB::table('regions')->insert([ 'id' => '20', 'name' => 'Чеченская Республика', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '20' ]);
+        DB::table('regions')->insert([ 'id' => '21', 'name' => 'Чувашская Республика - Чувашия', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '21' ]);
+        DB::table('regions')->insert([ 'id' => '22', 'name' => 'Алтайский край', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '4' ]);
+        DB::table('regions')->insert([ 'id' => '23', 'name' => 'Краснодарский край', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '23' ]);
+        DB::table('regions')->insert([ 'id' => '24', 'name' => 'Красноярский край', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '24' ]);
+        DB::table('regions')->insert([ 'id' => '25', 'name' => 'Приморский край', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '25' ]);
+        DB::table('regions')->insert([ 'id' => '26', 'name' => 'Ставропольский край', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '26' ]);
+        DB::table('regions')->insert([ 'id' => '27', 'name' => 'Хабаровский край', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '27' ]);
+        DB::table('regions')->insert([ 'id' => '28', 'name' => 'Амурская область', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '28' ]);
+        DB::table('regions')->insert([ 'id' => '29', 'name' => 'Архангельская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '29' ]);
+        DB::table('regions')->insert([ 'id' => '3', 'name' => 'Республика Бурятия', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '3' ]);
+        DB::table('regions')->insert([ 'id' => '30', 'name' => 'Астраханская область', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '30' ]);
+        DB::table('regions')->insert([ 'id' => '31', 'name' => 'Белгородская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '31' ]);
+        DB::table('regions')->insert([ 'id' => '32', 'name' => 'Брянская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '32' ]);
+        DB::table('regions')->insert([ 'id' => '33', 'name' => 'Владимирская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '33' ]);
+        DB::table('regions')->insert([ 'id' => '34', 'name' => 'Волгоградская область', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '34' ]);
+        DB::table('regions')->insert([ 'id' => '35', 'name' => 'Вологодская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '35' ]);
+        DB::table('regions')->insert([ 'id' => '36', 'name' => 'Воронежская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '36' ]);
+        DB::table('regions')->insert([ 'id' => '37', 'name' => 'Ивановская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '37' ]);
+        DB::table('regions')->insert([ 'id' => '38', 'name' => 'Иркутская область', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '38' ]);
+        DB::table('regions')->insert([ 'id' => '39', 'name' => 'Калининградская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '39' ]);
+        DB::table('regions')->insert([ 'id' => '4', 'name' => 'Республика Алтай', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '4' ]);
+        DB::table('regions')->insert([ 'id' => '40', 'name' => 'Калужская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '40' ]);
+        DB::table('regions')->insert([ 'id' => '41', 'name' => 'Камчатский край', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '41' ]);
+        DB::table('regions')->insert([ 'id' => '42', 'name' => 'Кемеровская область', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '42' ]);
+        DB::table('regions')->insert([ 'id' => '43', 'name' => 'Кировская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '43' ]);
+        DB::table('regions')->insert([ 'id' => '44', 'name' => 'Костромская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '44' ]);
+        DB::table('regions')->insert([ 'id' => '45', 'name' => 'Курганская область', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '45' ]);
+        DB::table('regions')->insert([ 'id' => '46', 'name' => 'Курская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '46' ]);
+        DB::table('regions')->insert([ 'id' => '47', 'name' => 'Ленинградская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '47' ]);
+        DB::table('regions')->insert([ 'id' => '48', 'name' => 'Липецкая область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '48' ]);
+        DB::table('regions')->insert([ 'id' => '49', 'name' => 'Магаданская область', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '49' ]);
+        DB::table('regions')->insert([ 'id' => '5', 'name' => 'Республика Дагестан', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '5' ]);
+        DB::table('regions')->insert([ 'id' => '50', 'name' => 'Московская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '50' ]);
+        DB::table('regions')->insert([ 'id' => '51', 'name' => 'Мурманская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '51' ]);
+        DB::table('regions')->insert([ 'id' => '52', 'name' => 'Нижегородская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '52' ]);
+        DB::table('regions')->insert([ 'id' => '53', 'name' => 'Новгородская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '53' ]);
+        DB::table('regions')->insert([ 'id' => '54', 'name' => 'Новосибирская область', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '54' ]);
+        DB::table('regions')->insert([ 'id' => '55', 'name' => 'Омская область', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '55' ]);
+        DB::table('regions')->insert([ 'id' => '56', 'name' => 'Оренбургская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '56' ]);
+        DB::table('regions')->insert([ 'id' => '57', 'name' => 'Орловская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '57' ]);
+        DB::table('regions')->insert([ 'id' => '58', 'name' => 'Пензенская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '58' ]);
+        DB::table('regions')->insert([ 'id' => '59', 'name' => 'Пермский край', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '59' ]);
+        DB::table('regions')->insert([ 'id' => '6', 'name' => 'Республика Ингушетия', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '6' ]);
+        DB::table('regions')->insert([ 'id' => '60', 'name' => 'Псковская область', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '60' ]);
+        DB::table('regions')->insert([ 'id' => '61', 'name' => 'Ростовская область', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '61' ]);
+        DB::table('regions')->insert([ 'id' => '62', 'name' => 'Рязанская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '62' ]);
+        DB::table('regions')->insert([ 'id' => '63', 'name' => 'Самарская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '63' ]);
+        DB::table('regions')->insert([ 'id' => '64', 'name' => 'Саратовская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '64' ]);
+        DB::table('regions')->insert([ 'id' => '65', 'name' => 'Сахалинская область', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '65' ]);
+        DB::table('regions')->insert([ 'id' => '66', 'name' => 'Свердловская область', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '66' ]);
+        DB::table('regions')->insert([ 'id' => '67', 'name' => 'Смоленская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '67' ]);
+        DB::table('regions')->insert([ 'id' => '68', 'name' => 'Тамбовская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '68' ]);
+        DB::table('regions')->insert([ 'id' => '69', 'name' => 'Тверская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '69' ]);
+        DB::table('regions')->insert([ 'id' => '7', 'name' => 'Кабардино-Балкарская Республика', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '7' ]);
+        DB::table('regions')->insert([ 'id' => '70', 'name' => 'Томская область', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '70' ]);
+        DB::table('regions')->insert([ 'id' => '71', 'name' => 'Тульская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '71' ]);
+        DB::table('regions')->insert([ 'id' => '72', 'name' => 'Тюменская область', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '72' ]);
+        DB::table('regions')->insert([ 'id' => '73', 'name' => 'Ульяновская область', 'federal_district_id' => '7EB35C3921944CB185F4912FE6EEF8DF', 'code' => '73' ]);
+        DB::table('regions')->insert([ 'id' => '74', 'name' => 'Челябинская область', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '74' ]);
+        DB::table('regions')->insert([ 'id' => '75', 'name' => 'Забайкальский край', 'federal_district_id' => 'ABDCBFDB51CB4A2FB3ADF5CFFB4E245D', 'code' => '75' ]);
+        DB::table('regions')->insert([ 'id' => '76', 'name' => 'Ярославская область', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '76' ]);
+        DB::table('regions')->insert([ 'id' => '77', 'name' => 'г. Москва', 'federal_district_id' => '4DA302E96A51456D8085FD6F09B0924B', 'code' => '77' ]);
+        DB::table('regions')->insert([ 'id' => '78', 'name' => 'г. Санкт-Петербург', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => '78' ]);
+        DB::table('regions')->insert([ 'id' => '79', 'name' => 'Еврейская автономная область', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '79' ]);
+        DB::table('regions')->insert([ 'id' => '8', 'name' => 'Республика Калмыкия', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '8' ]);
+        DB::table('regions')->insert([ 'id' => '83', 'name' => 'Ненецкий автономный округ', 'federal_district_id' => 'B5A86EDCC3B548439E338D058613C238', 'code' => null ]);
+        DB::table('regions')->insert([ 'id' => '85DEF11BC25A2736F3F0175B4731C64D', 'name' => 'г. Севастополь', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '81' ]);
+        DB::table('regions')->insert([ 'id' => '86', 'name' => 'Ханты-Мансийский автономный округ - Югра', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '86' ]);
+        DB::table('regions')->insert([ 'id' => '87', 'name' => 'Чукотский автономный округ', 'federal_district_id' => '46EF1E714CD24A2C9729D10B244E7B2B', 'code' => '87' ]);
+        DB::table('regions')->insert([ 'id' => '89', 'name' => 'Ямало-Ненецкий автономный округ', 'federal_district_id' => 'CFDAA958656A4E6F906866A5A755C485', 'code' => '89' ]);
+        DB::table('regions')->insert([ 'id' => '9', 'name' => 'Карачаево-Черкесская Республика', 'federal_district_id' => '3476A91C3CEFC829F8FAEDE73032DA3B', 'code' => '9' ]);
+        DB::table('regions')->insert([ 'id' => 'D42F509683ACF85512214575E80D75D7', 'name' => 'Республика Адыгея (Адыгея)', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '1' ]);
+        DB::table('regions')->insert([ 'id' => 'F6E9D94E2565526CB2B7F30C1AE76A96', 'name' => 'Республика Крым', 'federal_district_id' => 'EF9A6052374E4C2EBD371E9EB35C7416', 'code' => '82' ]);
+    }
+}

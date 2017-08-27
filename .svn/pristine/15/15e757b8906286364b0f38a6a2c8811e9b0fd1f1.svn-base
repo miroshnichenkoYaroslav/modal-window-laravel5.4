@@ -1,0 +1,187 @@
+<?php
+
+namespace App\Http\Controllers\Loader;
+
+use App\DiagnosticFile;
+use App\DiagnosticType;
+use App\DiagnosticSubject;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+use Yajra\Datatables\Datatables;
+
+/**
+ * Class LoaderController
+ * @package App\Http\Controllers\Loader
+ */
+class LoaderController extends Controller
+{
+    /**
+     * Главная страница раздела загрузки файлов результатов диагностики
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
+    {
+        return view('loader.index');
+    }
+
+    /**
+     * Формирование списка для отображения таблицы загруженных файлов на главной странице загрузки
+     *
+     * @param Datatables $dataTables
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function receiveFilesList(Datatables $dataTables)
+    {
+        return $dataTables->queryBuilder(
+            \DB::table('diagnostic_files')
+                ->leftJoin(
+                    'diagnostic_types',
+                    'diagnostic_files.diagnostic_type_id', '=', 'diagnostic_types.id'
+                )
+                ->leftJoin(
+                    'diagnostic_subjects',
+                    'diagnostic_files.diagnostic_subject_id', '=', 'diagnostic_subjects.id'
+                )
+                ->select([
+                    'diagnostic_files.id',
+                    'diagnostic_files.year',
+                    'diagnostic_files.file_name',
+                    'diagnostic_files.user_id',
+                    'diagnostic_files.created_at',
+                    'diagnostic_types.name as diagnostic_type_name',
+                    'diagnostic_subjects.name as diagnostic_subject_name'
+                ])
+        )->addIndexColumn()
+            ->make(true);
+    }
+
+
+    /**
+     * Страница с формой для загрузки файла результатов диагностики
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function load()
+    {
+        return view('loader.load', [
+            'types' => DiagnosticType::all()->toArray(),
+            'subjects' => DiagnosticSubject::all()->toArray(),
+            'years' => array_combine(range(date("Y"), date("Y") + 20), range(date("Y"), date("Y") + 20))
+        ]);
+    }
+
+    /**
+     * Загрузка, валидация и сохранение файла результатов диагностика, для последующей передачи на обработку
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function loadDiagnosticFile(Request $request)
+    {
+        $loadErrors = null;
+
+        $this->validate($request, [
+            'diagnostic_file'       => 'required|max:10240|mimes:xlsx',
+            'diagnostic_type_id'    => 'required',
+            'diagnostic_subject_id' => '',
+            'year'                  => 'required',
+            'exam_date'             => 'required',
+        ]);
+
+        if ($request->hasFile('diagnostic_file') && $request->file('diagnostic_file')->isValid()) {
+            $path = $request->diagnostic_file->store('diagnostic_files');
+
+            $diagnosticFile = new DiagnosticFile();
+
+            //Будет использоваться когда реализуется форма загрузки
+            $diagnosticFile->fill($request->only(['diagnostic_type_id', 'diagnostic_subject_id', 'year', 'exam_date']));
+
+            $diagnosticFile->file_name = $request->diagnostic_file->getClientOriginalName();
+            $diagnosticFile->file_path = $path;
+            $diagnosticFile->user_id = 123; //from user
+
+            $diagnosticFile->save();
+
+            /**
+             * TODO: После загрузки файла юзверя переводить на страницу с выбором начать обработку файла или отказаться
+             *       если отказывается файл удаляется из базы
+             *       на случаай если пользователь перезагрузит страницу или оборвется интернет
+             *       сделать принудительное возвращение к выбору действий над файлом до тех пор
+             *       пока пользователь не примет решение
+             */
+
+
+
+            return view('loader.processing', [
+                'fileData'  => $diagnosticFile->toArray(),
+            ]);
+        }
+
+        return view('loader.processing', [
+            'loadErrors'  => $loadErrors,
+        ]);
+    }
+
+    /**
+     * Обработка загруженного файла
+     *
+     * @param Request $request
+     */
+    public function processingFile(Request $request)
+    {
+        $csvPath = $this->xlsxToCSV($request->input('file_path'));
+
+        $handle = fopen($csvPath, "r");
+        if ($handle) {
+            $row = 0;
+            echo '<table border=1>';
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $num = count($data);
+                //echo "<p> $num полей в строке $row: <br /></p>\n";
+                $row++;
+                echo '<tr>';
+                for ($c=0; $c < $num; $c++) {
+                    echo '<td>' . $data[$c] . "<td>";
+                }
+                echo '</tr>';
+            }
+        }
+
+    }
+
+    /**
+     * Конвертирует xlsx файл в csv
+     *
+     * @param string $xlsxPath Путь к исходному файлу
+     * @return string
+     */
+    protected function xlsxToCSV($xlsxPath)
+    {
+        $reader = \PHPExcel_IOFactory::createReader('Excel2007');
+        $reader->setReadDataOnly(true);
+
+        $path = storage_path('app/') . $xlsxPath;
+        $excel = $reader->load($path);
+
+        $writer = \PHPExcel_IOFactory::createWriter($excel, 'CSV');
+
+        $name = md5(rand() + microtime() + rand());
+        $csvPath = storage_path("app/diagnostic_files/csv_tmp/$name.csv");
+        $writer->save($csvPath);
+
+        return $csvPath;
+    }
+
+    /**
+     * Отказ от обработки загруженного файла. Файл и запись в БД о нем полностью удаляются
+     *
+     * @param Request $request
+     */
+    public function processingCecncel(Request $request)
+    {
+
+    }
+}

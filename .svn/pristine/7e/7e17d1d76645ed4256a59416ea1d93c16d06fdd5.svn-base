@@ -1,0 +1,67 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * App\DiagnosticResult
+ *
+ * @mixin \Eloquent
+ * @property int $id
+ * @property int $diagnostic_file_id
+ * @property int $region_id
+ * @property int $municipality_id
+ * @property int $school_id
+ * @property string $class
+ * @property string $first_name
+ * @property string $last_name
+ * @property string $middle_name
+ * @property boolean $presence
+ * @property int $total_result
+ * @property string $xvl_result
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property string|null $xls_result
+ * @property-read \App\School $diagnosticFile
+ * @property-read \App\Municipality $municipality
+ * @property-read \App\Region $region
+ * @property-read \App\School $school
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereClass($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereDiagnosticFileId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereLastName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereMiddleName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereMunicipalityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult wherePresence($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereRegionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereSchoolId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereTotalResult($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\DiagnosticResult whereXlsResult($value)
+ */
+class DiagnosticResult extends Model
+{
+    public function school()
+    {
+        return $this->hasOne(School::class);
+    }
+
+    public function municipality()
+    {
+        return $this->hasOne(Municipality::class);
+    }
+
+    public function region()
+    {
+        return $this->hasOne(Region::class);
+    }
+
+    public function diagnosticFile()
+    {
+        return $this->hasOne(School::class);
+    }
+}

@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\DiagnosticFile;
+
+class AccountingController extends Controller
+{
+    public function index()
+    {
+        $files = DiagnosticFile::fetchFilesInfo();
+        dd($files);
+        foreach ($files as $file) {
+
+        }
+        return view('accounting.index', compact('files'));
+    }
+
+
+}

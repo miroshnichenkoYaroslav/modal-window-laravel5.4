@@ -1,0 +1,29 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Действия над загруженным файлом результатов диагностики</div>
+                    <div class="panel-body">
+                        {{ dump($fileData) }}
+
+                        <form name="result" id="result" action="{{ route('loader/processingFile') }}" method="post">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="diagnostic_file_id" value="{{ $fileData['id'] }}">
+                        </form>
+
+                        <form name="cancel" id="cancel" action="{{ route('loader/processingCancel') }}" method="post">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="diagnostic_file_id" value="{{ $fileData['id'] }}">
+                        </form>
+
+                        <input form="result" type="submit" id="process_file_result" class="btn btn-primary" value="Обработать">
+                        <input form="cancel" type="submit" id="process_file_cancel" class="btn btn-primary" value="Отменить(удалить загруженный файл)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

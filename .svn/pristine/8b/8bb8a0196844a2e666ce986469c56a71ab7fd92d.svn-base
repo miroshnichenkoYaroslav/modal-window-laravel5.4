@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Database\Seeder;
+
+class FederalDistrictsSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        DB::table('diagnostic_subjects')->insert([
+            'name' => 'Обществознание',
+        ]);
+        DB::table('diagnostic_subjects')->insert([
+            'name' => 'Математика',
+        ]);
+        DB::table('diagnostic_subjects')->insert([
+            'name' => 'Информатика',
+        ]);
+        DB::table('diagnostic_subjects')->insert([
+            'name' => 'Биология',
+        ]);
+        DB::table('diagnostic_subjects')->insert([
+            'name' => 'Философия',
+        ]);
+
+
+        DB::table('diagnostic_types')->insert([
+            'id' => '1',
+            'name' => 'РЯ_устно_ГИА-9',
+        ]);
+        DB::table('diagnostic_types')->insert([
+            'id' => '2',
+            'name' => 'Я сдам ЕГЭ',
+        ]);
+    }
+}

@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Http\Controllers\Loader;
+
+use App\DiagnosticFile;
+use App\DiagnosticType;
+use App\DiagnosticSubject;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+use Yajra\Datatables\Datatables;
+
+class LoaderController extends Controller
+{
+    public function index()
+    {
+        return view('loader.index');
+    }
+
+    public function getFilesList(Datatables $dataTables)
+    {
+        //TODO: Не работает сортировка по связанным полям
+        //  в примере запрос формируется с join`ами здесь такой запрос не получается
+        //  также не работает поиск
+        return $dataTables->eloquent(
+            DiagnosticFile::with('diagnosticType', 'diagnosticSubject')
+                ->select('diagnostic_files.*')
+        )->make(true);
+    }
+
+
+    public function load()
+    {
+        return view('loader.load', [
+            'typesList' => DiagnosticType::all()->toArray(),
+            'subjectsList' => DiagnosticSubject::all()->toArray(),
+            'yearsList' => array_combine(range(date("Y"), date("Y") + 20), range(date("Y"), date("Y") + 20))
+        ]);
+    }
+
+    public function loadDiagnosticFile(Request $request)
+    {
+
+        $this->validate($request, [
+            'diagnostic_file'       => 'required|max:10240|mimes:xlsx',
+            'diagnostic_type_id'    => 'required',
+            'diagnostic_subject_id' => '',
+            'year'                  => 'required',
+            'exam_date'             => 'required',
+        ]);
+
+        if ($request->hasFile('diagnostic_file') && $request->file('diagnostic_file')->isValid()) {
+            $path = $request->diagnostic_file->store('diagnostic_files');
+
+            $diagnosticFile = new DiagnosticFile();
+
+            //Будет использоваться когда реализуется форма загрузки
+            $diagnosticFile->fill($request->only(['diagnostic_type_id', 'diagnostic_subject_id', 'year', 'exam_date']));
+
+            $diagnosticFile->file_name = $request->diagnostic_file->getClientOriginalName();
+            $diagnosticFile->file_path = $path;
+            $diagnosticFile->user_id = 123; //from user
+
+            $diagnosticFile->save();
+
+            /**
+             * TODO: После загрузки файла юзверя переводить на страницу с выбором начать обработку файла или отказаться
+             *       если отказывается файл удаляется из базы
+             *       на случаай если пользователь перезагрузит страницу или оборвется интернет
+             *       сделать принудительное возвращение к выбору действий над файлом до тех пор
+             *       пока пользователь не примет решение
+             */
+
+            return view('loader.processing', [
+                'fileData'  => $diagnosticFile->toArray(),
+            ]);
+        }
+    }
+}

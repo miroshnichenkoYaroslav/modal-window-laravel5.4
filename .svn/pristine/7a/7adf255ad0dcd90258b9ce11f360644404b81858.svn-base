@@ -1,0 +1,38 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * App\Municipality
+ *
+ * @mixin \Eloquent
+ * @property int $id
+ * @property string $name
+ * @property int $region_id
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property-read \App\DiagnosticResult $diagnosticResult
+ * @property-read \App\Region $region
+ * @property-read \App\School $school
+ */
+class Municipality extends Model
+{
+
+    public function region()
+    {
+        return $this->hasOne(Region::class);
+    }
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function diagnosticResult()
+    {
+        return $this->belongsTo(DiagnosticResult::class);
+    }
+}

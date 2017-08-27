@@ -1,0 +1,432 @@
+<?php
+
+namespace App\Http\Controllers\Loader;
+
+use App\DiagnosticFile;
+use App\DiagnosticResult;
+use App\DiagnosticType;
+use App\DiagnosticSubject;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+use Yajra\Datatables\Datatables;
+
+/**
+ * Class LoaderController
+ * @package App\Http\Controllers\Loader
+ */
+class LoaderController extends Controller
+{
+    /**
+     * Главная страница раздела загрузки файлов результатов диагностики
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
+    {
+        return view('loader.index');
+    }
+
+    /**
+     * Формирование списка для отображения таблицы загруженных файлов на главной странице загрузки
+     *
+     * @param Datatables $dataTables
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function indexData(Datatables $dataTables, Request $request)
+    {
+        $query = \DB::table('diagnostic_files')
+            ->leftJoin(
+                'diagnostic_types',
+                'diagnostic_files.diagnostic_type_id', '=', 'diagnostic_types.id'
+            )
+            ->leftJoin(
+                'diagnostic_subjects',
+                'diagnostic_files.diagnostic_subject_id', '=', 'diagnostic_subjects.id'
+            )
+            ->whereNull('diagnostic_files.deleted_at')
+            //TODO: Использовать ID реально залогиненого пользователя
+            ->where('diagnostic_files.user_id', 123)
+            ->select([
+                'diagnostic_files.id',
+                'diagnostic_files.year',
+                'diagnostic_files.file_name',
+                'diagnostic_files.user_id',
+                'diagnostic_files.created_at',
+                'diagnostic_files.exam_date',
+                'diagnostic_types.id as diagnostic_type_id',
+                'diagnostic_types.name as diagnostic_type_name',
+                'diagnostic_subjects.id as diagnostic_subject_id',
+                'diagnostic_subjects.name as diagnostic_subject_name'
+            ]);
+
+        return $dataTables->queryBuilder($query)
+            ->editColumn('created_at', function ($data) {
+                return date("d.m.Y", strtotime($data->created_at));
+            })
+            ->addColumn('action', function ($data) {
+                $editBtn = '<button type="button" class="btn btn-primary editBtn" data-toggle="modal" data-target="#editModal" title="Редактировать файл">Р</button>';
+                $deleteBtn = '<button type="button" class="btn btn-primary deleteBtn" data-toggle="modal" data-target="#deleteConfirmation" title="Удалить файл">У</button>';
+                return $editBtn . ' ' . $deleteBtn;
+            })
+            ->addIndexColumn()
+            ->filter(function ($query) use ($request) {
+
+                $createdAT = $request->input('columns.7.search.value');
+                $createdAT = explode('.', $createdAT);
+                $createdAT = array_reverse($createdAT);
+                $createdAT = implode('-', $createdAT);
+
+                if ($request->has('columns.7.search.value')) {
+                    $query->where('diagnostic_files.created_at', 'like', "%{$createdAT}%");
+                }
+            })
+
+            ->make(true);
+    }
+
+    /**
+     * Отображение загруженного файла
+     *
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function view($id)
+    {
+        $diagnosticFile = DiagnosticFile::find($id);
+        $typeID = $diagnosticFile->diagnostic_type_id;
+        return view("loader.view-$typeID", [
+            'fileID'    => $id,
+        ]);
+    }
+
+    /**
+     * Данные загруженного файла
+     *
+     * @param Datatables $dataTables
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function viewData(Datatables $dataTables, Request $request)
+    {
+        $id = $request->id;
+        $diagnosticResults = DiagnosticResult::
+        with(['diagnosticFile', 'subject', 'school', 'municipality', 'region'])
+            ->where('diagnostic_file_id', $id)
+            ->select('diagnostic_results.*');
+
+        return $dataTables
+            ->eloquent($diagnosticResults)
+            ->editColumn('diagnostic_file.exam_date', function ($data) {
+                return date("d.m.Y", strtotime($data->created_at));
+            })
+            ->addColumn('test', function ($data) {
+                $xml = simplexml_load_string($data->xml_result);
+                $xml = json_encode($xml);
+                $xml = json_decode($xml,TRUE);
+                return $xml['test'];
+            })
+            ->addIndexColumn()
+            ->make(true);
+    }
+
+
+    /*
+     * Работа непосредственно с файлом
+     */
+    /**
+     * Страница с формой для загрузки файла результатов диагностики
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function load()
+    {
+        return view('loader.load', [
+            'types' => DiagnosticType::all()->toArray(),
+            'subjects' => DiagnosticSubject::all()->toArray(),
+            'years' => array_combine(range(date("Y"), date("Y") + 20), range(date("Y"), date("Y") + 20))
+        ]);
+    }
+
+    /**
+     * Загрузка, валидация и сохранение файла результатов диагностика, для последующей передачи на обработку
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function loadDiagnosticFile(Request $request)
+    {
+        $loadErrors = null;
+
+        $this->validate(
+            $request,
+            [
+                'diagnostic_file' => 'required|max:10240|mimes:xlsx',
+                'diagnostic_type_id' => 'required',
+                'diagnostic_subject_id' => '',
+                'year' => 'required',
+                'exam_date' => 'required',
+            ],
+            [
+                'diagnostic_file.max' => 'Максимальный размер файла 10Мб!',
+                'diagnostic_file.mimes' => 'Можно загружать только XLSX файлы!',
+                'diagnostic_type_id.required' => 'Необходимо указать тип диагностики!',
+                'year.required' => 'Необходимо указать год диагностики!',
+                'exam_date.required' => 'Необходимо указать дату экзамена!',
+            ]);
+
+        if ($request->hasFile('diagnostic_file') && $request->file('diagnostic_file')->isValid()) {
+            $path = $request->diagnostic_file->store('diagnostic_files');
+
+            $diagnosticFile = new DiagnosticFile();
+
+            //Будет использоваться когда реализуется форма загрузки
+            $diagnosticFile->fill($request->only(['diagnostic_type_id', 'diagnostic_subject_id', 'year', 'exam_date']));
+
+            $diagnosticFile->file_name = $request->diagnostic_file->getClientOriginalName();
+            $diagnosticFile->file_path = $path;
+            $diagnosticFile->user_id = 123; //from user
+
+            $diagnosticFile->save();
+
+            /**
+             * TODO: После загрузки файла юзверя переводить на страницу с выбором начать обработку файла или отказаться
+             *       если отказывается файл удаляется из базы
+             *       на случаай если пользователь перезагрузит страницу или оборвется интернет
+             *       сделать принудительное возвращение к выбору действий над файлом до тех пор
+             *       пока пользователь не примет решение
+             */
+
+            return view('loader.processing', [
+                'fileData'  => $diagnosticFile->toArray(),
+            ]);
+        }
+
+        return view('loader.processing', [
+            'loadErrors'  => $loadErrors,
+        ]);
+    }
+
+    /**
+     * Форма редактирования данных о файле
+     *
+     * @param int       $id
+     * @param Request   $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function editFileForm($id)
+    {
+        $diagnosticFile = DiagnosticFile::find($id);
+
+        if ($diagnosticFile) {
+            return view('loader.edit-file', [
+                'types'     => DiagnosticType::all()->toArray(),
+                'subjects'  => DiagnosticSubject::all()->toArray(),
+                'years'     => array_combine(range(date("Y"), date("Y") + 20), range(date("Y"), date("Y") + 20)),
+                'file'      => $diagnosticFile,
+            ]);
+        } else {
+            session()->flash('message', 'Указанный файл не найде');
+
+            return redirect(route('loader/index'));
+        }
+
+    }
+
+    /**
+     * Редактирование данных о файле
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function editFile(Request $request)
+    {
+        //TODO: Имеет смысл не давать возможность изменять тип диагностики,
+        //      т.к. парсинг файла происходит при загрузке и тип парсинга определяется по выбранному типу файла
+        //      после смены его типа необходимо проводить парсинг заново.
+
+        //TODO: Еще раз подумать о проверке соответсвия файла выбранному типу!
+
+        $this->validate(
+            $request,
+            [
+                'diagnostic_type_id' => 'required',
+                'diagnostic_subject_id' => '',
+                'year' => 'required',
+                'exam_date' => 'required',
+            ],
+            [
+                'diagnostic_type_id.required' => 'Необходимо указать тип диагностики!',
+                'year.required' => 'Необходимо указать год диагностики!',
+                'exam_date.required' => 'Необходимо указать дату экзамена!',
+            ]
+        );
+
+        $fileID = $request->file_id;
+        $diagnosticFile = DiagnosticFile::find($fileID);
+
+        if ($diagnosticFile) {
+            $diagnosticFile->fill($request->all());
+            $diagnosticFile->save();
+        } else {
+            $request->session()->flash('message', 'Файл не найден!');
+        }
+
+        $request->session()->flash('message', 'Данные файла успешно обновлены!');
+        return redirect('loader');
+    }
+
+    /**
+     * Удаление загруженного файла. Файл и записи в БД о нем полностью удаляются
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function deleteFile(Request $request)
+    {
+        $fileID = $request->file_id;
+        $diagnosticFile = DiagnosticFile::find($fileID);
+
+        if ($diagnosticFile) {
+            $filePath = storage_path($diagnosticFile->file_path);
+            if (file_exists($filePath) && is_file($filePath)){
+                unlink($filePath);
+            }
+            $diagnosticFile->delete();
+        } else {
+            $request->session()->flash('message', 'Файл и сопутствующие данные успешно удалены!');
+        }
+
+        DiagnosticResult::where('diagnostic_file_id', $fileID)->delete();
+
+        $request->session()->flash('message', 'Файл и сопутствующие данные успешно удалены!');
+        return redirect('loader');
+    }
+
+    /*
+     * Методы отвечающие за обработку загруженного файла
+     */
+    /**
+     * Обработка загруженного файла
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function processingFile(Request $request)
+    {
+        $fileID = $request->input('diagnostic_file_id');
+        DiagnosticResult::parseFile($fileID);
+
+        return redirect(route('loader/processingResult', [
+            'fileID' => $fileID,
+        ]));
+    }
+
+    //TODO: Припилить midlwear не дающий выйти из обработчика ошибок парсинга
+    //      до принятия решения принять результаты парсинга или удалить
+
+    /**
+     * Отображение результатов парсинга файла
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function processingResult(Request $request)
+    {
+        
+        $fileID = $request->input('fileID');
+        return view("loader.processing-result", [
+            'fileID'    => $fileID,
+        ]);
+    }
+
+    /**
+     * Данные о результате парсинга файла
+     *
+     * @param Request $request
+     * @param Datatables $dataTables
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function processingResultData(Request $request, Datatables $dataTables)
+    {
+        $id = $request->id;
+        $diagnosticResults = DiagnosticResult::
+        with(['diagnosticFile', 'subject', 'school', 'municipality', 'region'])
+            ->where('diagnostic_file_id', $id)
+            ->where('status', 'error')
+            ->select('diagnostic_results.*');
+
+        return $dataTables
+            ->eloquent($diagnosticResults)
+            ->editColumn('diagnostic_file.exam_date', function ($data) {
+                return date("d.m.Y", strtotime($data->created_at));
+            })
+            ->addColumn('test', function ($data) {
+                $xml = simplexml_load_string($data->xml_result);
+                $xml = json_encode($xml);
+                $xml = json_decode($xml,TRUE);
+                return $xml['test'];
+            })
+            ->editColumn('errors', function ($data) {
+                $errors = json_decode($data->errors,TRUE);
+                return $errors;
+            })
+            ->addColumn('details_url', function($data) {
+                return url('loader/processing/duplicates/' . $data->id);
+            })
+            ->addIndexColumn()
+            ->make(true);
+    }
+
+    /**
+     * Данные о дублирующихся строках в файле
+     *
+     * @param Request $request
+     * @param Datatables $dataTables
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function processingResultDuplicatesData(Request $request, Datatables $dataTables)
+    {
+        $fileID = $request->file_id;
+        $rowID = $request->row_id;
+
+        $duplicates = DiagnosticResult::find($rowID, ['duplicates']);
+        $duplicates = json_decode($duplicates->duplicates, true);
+
+        $diagnosticResults = DiagnosticResult::
+        with(['diagnosticFile', 'subject', 'school', 'municipality', 'region'])
+            ->where('diagnostic_results.diagnostic_file_id', $fileID)
+            ->whereIn('diagnostic_results.id', $duplicates)
+            ->select('diagnostic_results.*');
+
+        return $dataTables
+            ->eloquent($diagnosticResults)
+            ->editColumn('diagnostic_file.exam_date', function ($data) {
+                return date("d.m.Y", strtotime($data->created_at));
+            })
+            ->addColumn('test', function ($data) {
+                $xml = simplexml_load_string($data->xml_result);
+                $xml = json_encode($xml);
+                $xml = json_decode($xml,TRUE);
+                return $xml['test'];
+            })
+            ->editColumn('errors', function ($data) {
+                $errors = json_decode($data->errors,TRUE);
+                return $errors;
+            })
+            ->addColumn('action', function ($data) {
+                $editBtn = '<button class="accept_row" data-id="'. $data->id .'" type="button" class="btn btn-primary btn-sm" title="Принять">П</span></button>';
+                $deleteBtn = '<button class="delete_row" data-id="'. $data->id .'" type="button" class="btn btn-primary btn-sm" title="Удалить">У</button>';
+                return $editBtn . ' ' . $deleteBtn;
+            })
+            ->addIndexColumn()
+            ->make(true);
+    }
+
+    public function messages()
+    {
+        return ;
+    }
+}

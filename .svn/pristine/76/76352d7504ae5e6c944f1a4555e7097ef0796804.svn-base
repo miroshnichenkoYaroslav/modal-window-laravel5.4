@@ -1,0 +1,45 @@
+<?php
+
+namespace App;
+
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * App\Region
+ *
+ * @mixin \Eloquent
+ * @property int $id
+ * @property int $federal_district_id
+ * @property string $name
+ * @property string $code
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property-read \App\DiagnosticResult $diagnosticResult
+ * @property-read \App\FederalDistrict $federalDistrict
+ * @property-read \App\Municipality $municipality
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereFederalDistrictId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Region whereUpdatedAt($value)
+ */
+class Region extends Model
+{
+
+    public function federalDistrict()
+    {
+        return $this->hasOne(FederalDistrict::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
+    }
+
+    public function diagnosticResult()
+    {
+        return $this->belongsTo(DiagnosticResult::class);
+    }
+}

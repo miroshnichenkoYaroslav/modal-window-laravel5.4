@@ -1,0 +1,40 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class DiagnosticFile extends Model
+{
+    use SoftDeletes;
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = ['deleted_at'];
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = ['diagnostic_type_id', 'diagnostic_subject_id', 'year', 'exam_date'];
+
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
+
+    public function diagnosticType()
+    {
+        return $this->belongsTo('App\DiagnosticType');
+    }
+
+    public function diagnosticSubject()
+    {
+        return $this->belongsTo('App\DiagnosticSubject');
+    }
+}

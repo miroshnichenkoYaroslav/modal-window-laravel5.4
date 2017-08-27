@@ -1,0 +1,13 @@
+<div class="form-group {{ $errors->has('fio') ? ' has-error' : ''}}">
+    <label for="fio" class="col-md-2 control-label">ФИО</label>
+
+    <div class="col-md-6">
+        <input id="fio" type="text" class="form-control" name="fio"
+               value="{{isset($fio) ? $fio : ''}}">
+        @if ($errors->has('fio'))
+            <span class="help-block">
+                <strong>{{ $errors->first('fio') }}</strong>
+            </span>
+        @endif
+    </div>
+</div>

@@ -1,0 +1,221 @@
+<div class="container">
+    <div class="row">
+        {{ $users->links() }}
+    </div>
+    <p>
+        <button class="btn-sm btn btn-primary"
+                data-toggle="modal" data-target="#create">
+            Добавить
+        </button>
+    </p>
+    <div class="row">
+        <table class="table table-responsive table-hover table-bordered">
+            <thead>
+            <th class="text-center col-md-1">#</th>
+            <th class="text-center col-md-3">ФИО</th>
+            <th class="text-center col-md-2">Логин</th>
+            <th class="text-center col-md-3">Email</th>
+            <th class="text-center col-md-2">Роль</th>
+            <th class="text-center col-md-1">Действия</th>
+            </thead>
+            <tbody class="table table-responsive table-hover">
+            @foreach($users as $user)
+                <tr data-id="{{$user->id}}" data-user="{{ json_encode($user->toArray()) }}">
+                    <td class="text-center col-md-1">{{$user->id}}</td>
+                    <td class="text-center col-md-3">{{$user->fio}}</td>
+                    <td class="text-center col-md-2">{{$user->login}}</td>
+                    <td class="text-center col-md-3">{{$user->email}}</td>
+                    <td class="text-center col-md-2">{{$user->role}}</td>
+                    <td class="text-center col-md-1">
+                        <button class="btn-sm btn btn-primary edit"
+                                data-toggle="modal" data-target="#edit" data-id="{{$user->id}}">
+                            Редактировать
+                        </button>
+                        <button class="btn-sm btn btn-primary delete"
+                                data-toggle="modal" data-target="#delete" data-id="{{$user->id}}">
+                            Удалить
+                        </button>
+                    </td>
+                </tr>
+            @endforeach
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+<div class="row">
+    {{ $users->links() }}
+</div>
+</div>
+<script
+        src="https://code.jquery.com/jquery-3.2.1.js"
+        integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+        crossorigin="anonymous"></script>
+<script>
+    $(function () {
+        const formDelete = $('form.form-delete');
+        const formEdit = $('form.form-edit');
+
+        /**
+         * Достает значения из tr.
+         *
+         * @return json
+         */
+        function retrieveData(selector) {
+            var id = $(selector).attr('data-id');
+            var jsonData = $('tr[data-id=' + id + ']').attr('data-user');
+            //return $.parseJSON(jsonData);
+        }
+
+        /**
+         * Подставляет значение из response во блоки на страницы.
+         *
+         * @param data | Response.
+         */
+        function onSuccess(data) {
+            console.log(1);
+        }
+
+        /**
+         * Отправка ajax по url текущей страницы.
+         */
+        {{--function ajax(action, type, id) {--}}
+            {{--$.ajax({--}}
+                {{--url: action,--}}
+                {{--type: 'DELETE',--}}
+                {{--data: {--}}
+                    {{--"id": 50,--}}
+                    {{--"_method": 'DELETE',--}}
+                    {{--"_token": "{{ csrf_token() }}"--}}
+                {{--},--}}
+                {{--success: function (response) {--}}
+                    {{--console.log(1);--}}
+                    {{--onSuccess(response);--}}
+                {{--}--}}
+            {{--});--}}
+        {{--}--}}
+
+        /**
+         * Отлавливает клик по `.delete`.
+         */
+        $('.delete-submit').on('click', function () {
+            //ajax('/admin/destroy/50');
+        });
+
+        /**
+         * Отлавливает клик по `.edit`.
+         */
+        $('.edit').on('click', function () {
+            var data = retrieveData(this);
+            var action = window.location.pathname + '/' + data.id;
+
+            formEdit.attr('action', action);
+
+            $('#fio').attr('value', data.fio);
+            $('#login').attr('value', data.login);
+            $('#email').attr('value', data.email);
+            $('#role option[value=' + data.role + ']').attr('selected', 'true').text(data.role);
+        });
+
+
+    })
+</script>
+
+<!-- Modal HTML Markup -->
+<div id="edit" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">Редактирование</h1>
+            </div>
+            <div class="modal-body">
+                <form class="form-edit form-horizontal" method="POST">
+                    {{ csrf_field() }}
+                    {{ method_field('PATCH') }}
+
+                    {{--ФИО.--}}
+                    @component('components.admin.form.fio')
+                    @endcomponent
+
+                    {{--Поле логина.--}}
+                    @component('components.admin.form.login')
+                    @endcomponent
+
+                    {{--Поле email.--}}
+                    @component('components.admin.form.email')
+                    @endcomponent
+
+                    {{--Поле роли.--}}
+                    @component('components.admin.form.role')
+                    @endcomponent
+
+                    {{--Отправка формы.--}}
+                    @component('components.admin.form.submit')
+                    @endcomponent
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal HTML Markup -->
+<div id="create" class="modal fade">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">Создание</h1>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" action="{{route('admin.store')}}" method="POST">
+                    {{ csrf_field() }}
+
+                    {{--ФИО.--}}
+                    @component('components.admin.form.fio')
+                    @endcomponent
+
+                    {{--Поле логина.--}}
+                    @component('components.admin.form.login')
+                    @endcomponent
+
+                    {{--Поле email.--}}
+                    @component('components.admin.form.email')
+                    @endcomponent
+
+                    {{--Поле роли.--}}
+                    @component('components.admin.form.role')
+                    @endcomponent
+
+                    {{--Поле роли.--}}
+                    @component('components.admin.form.password')
+                    @endcomponent
+
+                    {{--Поле роли.--}}
+                    @component('components.admin.form.passwordconfirm')
+                    @endcomponent
+
+                    {{--Отправка формы.--}}
+                    @component('components.admin.form.submit')
+                    @endcomponent
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="delete" class="modal fade">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title">Потверждение</h1>
+            </div>
+            <div class="modal-body">
+                {{--<form class='form-delete' method="POST">--}}
+                    {{ csrf_field() }}
+                    {{ method_field('DELETE') }}
+                    <input type="submit" class="btn-sm btn btn-primary delete-submit" value="Удалить">
+                {{--</form>--}}
+            </div>
+        </div>
+    </div>
+</div>

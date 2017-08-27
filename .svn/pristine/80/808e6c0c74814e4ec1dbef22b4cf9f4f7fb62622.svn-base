@@ -1,0 +1,28 @@
+@extends('layouts.app')
+@section('content')
+    <div class="container">
+        @if (request()->is('accounting'))
+            {{-- Вывод всех пользователей. --}}
+            @component('components.accounting.files', [
+                'files' => $files
+            ])
+            @endcomponent
+
+            @component('components.accounting.filters', [
+                //'filters' => $users
+            ])
+            @endcomponent
+
+            @component('components.accounting.result', [
+                //'users' => $users
+            ])
+            @endcomponent
+
+            @component('components.accounting.graphics', [
+                //'users' => $users
+            ])
+            @endcomponent
+
+        @endif
+    </div>
+@endsection

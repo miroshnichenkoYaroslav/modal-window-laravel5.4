@@ -1,0 +1,20 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Действия над загруженным файлом результатов диагностики</div>
+                    <div class="panel-body">
+                        @php
+                            dump($fileData);
+                        @endphp
+                        <a class="btn btn-primary" href="{{ route('loader/processing') }}?file_path={{ $fileData['file_path'] }}" role="button">Обработать</a>
+                        <a class="btn btn-primary" href="{{ route('loader/load') }}" role="button">Удалить</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

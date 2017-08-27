@@ -1,0 +1,15 @@
+<div class="form-group {{ $errors->has('role') ? ' has-error' : ''}}">
+    <label for="role" class="col-md-2 control-label">Роль</label>
+
+    <div class="col-md-6">
+        <select id="role" name="role" class="form-control" required>
+            <option value="guest">Гость</option>
+            <option value="admin">Администратор</option>
+        </select>
+        @if ($errors->has('role'))
+            <span class="help-block">
+                <strong>{{ $errors->first('role') }}</strong>
+            </span>
+        @endif
+    </div>
+</div>
